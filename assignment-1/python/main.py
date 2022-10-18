@@ -33,6 +33,8 @@ class Operation:
         for i in range(0, len(target)):
             permutation = permutation + source[target[i] - 1]
         return permutation
+    # def permute(source, target):
+    #     return "".join([source[i - 1] for i in target])
 
     @staticmethod
     def shift_left(source, n):
@@ -49,6 +51,55 @@ class Operation:
         return result
     # def xor(bin_a, bin_b):
     #     return "".join([str(ord(a) ^ ord(b)) for a,b in zip(bin_a, bin_b)])
+
+
+class Key:
+    F_COMPRESSION_TABLE = \
+        [57, 49, 41, 33, 25, 17, 9,
+        1, 58, 50, 42, 34, 26, 18,
+        10, 2, 59, 51, 43, 35, 27,
+        19, 11, 3, 60, 52, 44, 36,
+        63, 55, 47, 39, 31, 23, 15,
+        7, 62, 54, 46, 38, 30, 22,
+        14, 6, 61, 53, 45, 37, 29,
+        21, 13, 5, 28, 20, 12, 4]
+
+    SHIFT_TABLE = \
+        [1, 1, 2, 2,
+        2, 2, 2, 2,
+        1, 2, 2, 2,
+        2, 2, 2, 1]
+
+    S_COMPRESSION_TABLE = \
+        [14, 17, 11, 24, 1, 5,
+        3, 28, 15, 6, 21, 10,
+        23, 19, 12, 4, 26, 8,
+        16, 7, 27, 20, 13, 2,
+        41, 52, 31, 37, 47, 55,
+        30, 40, 51, 45, 33, 48,
+        44, 49, 39, 56, 34, 53,
+        46, 42, 50, 36, 29, 32]
+
+    def __init__(self, hex):
+        self.key = Binary.from_hex(hex)
+        self.key = Operation.permute(self.key, self.F_COMPRESSION_TABLE)
+        
+        self.round_keys = []
+        self.__generate_round_keys()
+
+    def __generate_round_keys(self):
+        left_key = self.key[:28]
+        right_key = self.key[28:]
+
+        for i in range(0, 16):
+            left_key = Operation.shift_left(left_key, self.SHIFT_TABLE[i])
+            right_key = Operation.shift_left(right_key, self.SHIFT_TABLE[i])
+            round_key = Operation.permute(left_key + right_key, self.S_COMPRESSION_TABLE)
+
+            self.round_keys.append(round_key)
+    
+    def get_keys(self):
+        return self.round_keys
 
 
 initial_perm = [58, 50, 42, 34, 26, 18, 10, 2,
@@ -130,7 +181,7 @@ final_perm = [40, 8, 48, 16, 56, 24, 64, 32,
               33, 1, 41, 9, 49, 17, 57, 25]
 
 
-def encrypt(pt, rkb, rk):
+def encrypt(pt, rkb):
     pt = Binary.from_hex(pt)
 
     # Initial Permutation
@@ -167,7 +218,7 @@ def encrypt(pt, rkb, rk):
         if (i != 15):
             left, right = right, left
         print("Round ", i + 1, " ", Binary.to_hex(left),
-              " ", Binary.to_hex(right), " ", rk[i])
+              " ", Binary.to_hex(right))
 
     # Combination
     combine = left + right
@@ -177,70 +228,18 @@ def encrypt(pt, rkb, rk):
     return cipher_text
 
 
-pt = "123456AB89123872"
+pt = "1234adAB89123872"
 key = "AABB09182736CCDD"
 
-# Key generation
-# --hex to binary
-key = Binary.from_hex(key)
-
-# --parity bit drop table
-keyp = [57, 49, 41, 33, 25, 17, 9,
-        1, 58, 50, 42, 34, 26, 18,
-        10, 2, 59, 51, 43, 35, 27,
-        19, 11, 3, 60, 52, 44, 36,
-        63, 55, 47, 39, 31, 23, 15,
-        7, 62, 54, 46, 38, 30, 22,
-        14, 6, 61, 53, 45, 37, 29,
-        21, 13, 5, 28, 20, 12, 4]
-
-# getting 56 bit key from 64 bit using the parity bits
-key = Operation.permute(key, keyp)
-
-# Number of bit shifts
-shift_table = [1, 1, 2, 2,
-               2, 2, 2, 2,
-               1, 2, 2, 2,
-               2, 2, 2, 1]
-
-# Key- Compression Table : Compression of key from 56 bits to 48 bits
-key_comp = [14, 17, 11, 24, 1, 5,
-            3, 28, 15, 6, 21, 10,
-            23, 19, 12, 4, 26, 8,
-            16, 7, 27, 20, 13, 2,
-            41, 52, 31, 37, 47, 55,
-            30, 40, 51, 45, 33, 48,
-            44, 49, 39, 56, 34, 53,
-            46, 42, 50, 36, 29, 32]
-
-# Splitting
-left = key[0:28]  # rkb for RoundKeys in binary
-right = key[28:56]  # rk for RoundKeys in hexadecimal
-
-rkb = []
-rk = []
-for i in range(0, 16):
-    # Shifting the bits by nth shifts by checking from shift table
-    left = Operation.shift_left(left, shift_table[i])
-    right = Operation.shift_left(right, shift_table[i])
-
-    # Combination of left and right string
-    combine_str = left + right
-
-    # Compression of key from 56 to 48 bits
-    round_key = Operation.permute(combine_str, key_comp)
-
-    rkb.append(round_key)
-    rk.append(Binary.to_hex(round_key))
+rkb = Key(key).get_keys()
 
 print("Encryption")
-cipher_text = Binary.to_hex(encrypt(pt, rkb, rk))
+cipher_text = Binary.to_hex(encrypt(pt, rkb))
 print("Cipher Text : ", cipher_text)
 
 print("Decryption")
 rkb_rev = rkb[::-1]
-rk_rev = rk[::-1]
-text = Binary.to_hex(encrypt(cipher_text, rkb_rev, rk_rev))
+text = Binary.to_hex(encrypt(cipher_text, rkb_rev))
 print("Plain Text : ", text)
 
 # This code is contributed by Aditya Jain
