@@ -4,12 +4,7 @@ import math
 class Binary:
     @staticmethod
     def from_hex(hex):
-        result = ""
-        for char in range(len(hex)):
-            result = result + bin(int(hex[char], 16))[2:].zfill(4)
-        return result
-    # def from_hex(hex):
-    #     return "".join(["{:04b}".format(int(i, 16)) for i in hex])
+        return "".join(["{:04b}".format(int(i, 16)) for i in hex])
 
     @staticmethod
     def from_dec(dec):
@@ -20,13 +15,8 @@ class Binary:
         return "".join(format(ord(i), "08b") for i in text)
 
     @staticmethod
-    def to_hex(binary):
-        result = ""
-        for char in range(0, len(binary), 4):
-            result = result + hex(int(binary[char: char + 4], 2))[2:]
-        return result
-    # def to_hex(bin):
-    #     return format(int(bin, 2), 'x')
+    def to_hex(bin):
+        return format(int(bin, 2), 'x')
 
     @staticmethod
     def to_dec(binary):
@@ -49,12 +39,7 @@ class Binary:
 class Operation:
     @staticmethod
     def permute(source, target):
-        permutation = ""
-        for i in range(len(target)):
-            permutation = permutation + source[target[i] - 1]
-        return permutation
-    # def permute(source, target):
-    #     return "".join([source[i - 1] for i in target])
+        return "".join([source[i - 1] for i in target])
 
     @staticmethod
     def shift_left(source, n):
@@ -62,15 +47,30 @@ class Operation:
 
     @staticmethod
     def xor(bin_a, bin_b):
-        result = ""
-        for i in range(len(bin_a)):
-            if bin_a[i] == bin_b[i]:
-                result = result + "0"
-            else:
-                result = result + "1"
-        return result
-    # def xor(bin_a, bin_b):
-    #     return "".join([str(ord(a) ^ ord(b)) for a,b in zip(bin_a, bin_b)])
+        return "".join([str(ord(a) ^ ord(b)) for a, b in zip(bin_a, bin_b)])
+
+
+class Data:
+    def __init__(self, plain_text):
+        self.block_size = 16 if Binary.is_hex(plain_text) else 8
+        self.data = plain_text.ljust(math.ceil(len(plain_text) / self.block_size) * self.block_size, "0")
+
+    def to_binary(self, data):
+        if (self.block_size == 16):
+            return Binary.from_hex(data)
+        
+        else:
+            return Binary.from_text(data)
+
+    def from_binary(self, data):
+        if (self.block_size == 16):
+            return Binary.to_hex(data)
+        
+        else:
+            return Binary.to_text(data)
+    
+    def get_list(self):
+        return [self.to_binary(self.data[i:i + self.block_size]) for i in range(0, len(self.data), self.block_size)]
 
 
 class Key:
@@ -100,9 +100,8 @@ class Key:
         44, 49, 39, 56, 34, 53,
         46, 42, 50, 36, 29, 32]
 
-    def __init__(self, hex):
-        self.key = Binary.from_hex(hex)
-        self.key = Operation.permute(self.key, self.FIRST_COMPRESSION_PERMUTATION)
+    def __init__(self, key):
+        self.key = Operation.permute(key, self.FIRST_COMPRESSION_PERMUTATION)
         
         self.round_keys = []
         self.__generate_round_keys()
@@ -217,29 +216,6 @@ class Round:
         return self.left_plain_text + self.right_plain_text
 
 
-class Data:
-    def __init__(self, plain_text):
-        self.block_size = 16 if Binary.is_hex(plain_text) else 8
-        self.data = plain_text.ljust(math.ceil(len(plain_text) / self.block_size) * self.block_size, "0")
-
-    def to_binary(self, data):
-        if (self.block_size == 16):
-            return Binary.from_hex(data)
-        
-        else:
-            return Binary.from_text(data)
-
-    def from_binary(self, data):
-        if (self.block_size == 16):
-            return Binary.to_hex(data)
-        
-        else:
-            return Binary.to_text(data)
-    
-    def get_list(self):
-        return [self.to_binary(self.data[i:i + self.block_size]) for i in range(0, len(self.data), self.block_size)]
-
-
 class DES:
     INITIAL_PERMUTATION = \
         [58, 50, 42, 34, 26, 18, 10, 2,
@@ -286,13 +262,33 @@ class DES:
         return self.data.from_binary(result)
 
 
-pt = "1234adAB8912382assasaas343874398723243"
-key = "AABB09182736CCDD"
+class LinearDES:
+    def __init__(self, plain_text, key):
+        self.keys = Data(key).get_list()
+        self.data = plain_text
+
+    def encrypt(self):
+        result = self.data
+        for key in self.keys:
+            result = DES(result, key).encrypt()
+        
+        return result
+
+    def decrypt(self):
+        result = self.data
+        for key in self.keys[::-1]:
+            result = DES(result, key).decrypt()
+        
+        return result
+
+
+pt = "1234adAB8912382ashdajsdkasjd9283989hjwo8u3oik"
+key = "jalilasdasjdkasdjsakjdhaksjdh9832y948hewokjhk"
 
 print("Encryption")
-cipher_text = DES(pt, key).encrypt()
+cipher_text = LinearDES(pt, key).encrypt()
 print("Cipher Text : ", cipher_text)
 
 print("Decryption")
-text = DES(cipher_text, key).decrypt()
+text = LinearDES(cipher_text, key).decrypt()
 print("Plain Text : ", text)
