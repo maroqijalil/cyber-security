@@ -1,5 +1,4 @@
 import math
-from pyexpat import EXPAT_VERSION
 
 
 class Binary:
@@ -13,13 +12,13 @@ class Binary:
     #     return "".join(["{:04b}".format(int(i, 16)) for i in hex])
 
     @staticmethod
-    # def to_hex(binary):
-    #     result = ""
-    #     for char in range(0, len(binary), 4):
-    #         result = result + hex(int(binary[char: char + 4], 2))[2:]
-    #     return result
-    def to_hex(bin):
-        return format(int(bin, 2), 'x')
+    def to_hex(binary):
+        result = ""
+        for char in range(0, len(binary), 4):
+            result = result + hex(int(binary[char: char + 4], 2))[2:]
+        return result
+    # def to_hex(bin):
+    #     return format(int(bin, 2), 'x')
 
     @staticmethod
     def to_dec(binary):
@@ -34,7 +33,7 @@ class Operation:
     @staticmethod
     def permute(source, target):
         permutation = ""
-        for i in range(0, len(target)):
+        for i in range(len(target)):
             permutation = permutation + source[target[i] - 1]
         return permutation
     # def permute(source, target):
@@ -248,7 +247,7 @@ class DES:
         return Binary.to_hex(result)
 
 
-pt = "1234adAB89123872"
+pt = "1234adAB891238234387439872"
 key = "AABB09182736CCDD"
 
 print("Encryption")
@@ -258,5 +257,3 @@ print("Cipher Text : ", cipher_text)
 print("Decryption")
 text = DES(cipher_text, key).decrypt()
 print("Plain Text : ", text)
-
-# This code is contributed by Aditya Jain
