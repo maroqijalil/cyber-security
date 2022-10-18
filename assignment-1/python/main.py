@@ -6,17 +6,16 @@ class Binary:
             result = result + bin(int(hex[char], 16))[2:].zfill(4)
         return result
     # def from_hex(hex):
-    #     return "{0:08b}".format(int(hex, 16))
+    #     return "".join(["{0:04b}".format(int(i, 16)) for i in hex])
 
     @staticmethod
-    def to_hex(binary):
-        result = ""
-        for char in range(0, len(binary), 4):
-            result = result + hex(int(binary[char: char + 4], 2))[2:]
-        return result
-    # def to_hex(bin):
-    #     result = format(int(bin, 2), 'x')
+    # def to_hex(binary):
+    #     result = ""
+    #     for char in range(0, len(binary), 4):
+    #         result = result + hex(int(binary[char: char + 4], 2))[2:]
     #     return result
+    def to_hex(bin):
+        return format(int(bin, 2), 'x')
 
     @staticmethod
     def to_dec(binary):
@@ -49,7 +48,7 @@ class Operation:
                 result = result + "1"
         return result
     # def xor(bin_a, bin_b):
-    #     return "".join([(ord(a) ^ ord(b)) for a,b in zip(bin_a, bin_b)])
+    #     return "".join([str(ord(a) ^ ord(b)) for a,b in zip(bin_a, bin_b)])
 
 
 initial_perm = [58, 50, 42, 34, 26, 18, 10, 2,
@@ -178,7 +177,7 @@ def encrypt(pt, rkb, rk):
     return cipher_text
 
 
-pt = "123456AB00000000"
+pt = "123456AB89123872"
 key = "AABB09182736CCDD"
 
 # Key generation
