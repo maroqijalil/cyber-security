@@ -1,7 +1,6 @@
 import math
 
 class Binary:
-    @staticmethod
     def from_hex(hex):
         result = ""
         for index in range(len(hex)):
@@ -12,7 +11,6 @@ class Binary:
             print(to_bin, end=end)
         return result
 
-    @staticmethod
     def to_hex(binary):
         result = ""
         for index in range(0, len(binary), 4):
@@ -20,32 +18,24 @@ class Binary:
             result = result + to_hex
         return result
         
-    @staticmethod
     def to_dec(binary):
         return int(binary, 2)
 
-    @staticmethod
     def from_dec(dec):
         return bin(dec)[2:]
 
 
 class Operation:
-    @staticmethod
     def permute(source, target):
         return "".join([source[i - 1] for i in target])
 
-    @staticmethod
     def shift_left(source, n):
         return source[n:] + source[:n]
 
-    @staticmethod
     def xor(bin_a, bin_b):
         result = ""
         for i in range(len(bin_a)):
-            if bin_a[i] == bin_b[i]:
-                result = result + "0"
-            else:
-                result = result + "1"
+            result += "0" if bin_a[i] == bin_b[i] else "1"
         return result
 
 
@@ -239,20 +229,30 @@ class DES:
 
             operated_text = Round(plain_text, round_keys).get_operated_text()
             result = result + Operation.permute(operated_text, self.FINAL_PERMUTATION)
-            print(result)
         
         return Binary.to_hex(result)
 
 
-plain_txt = "1234ADAB891238234"
-key = "AABB09182736CCDD"
+print("Initialization".upper())
+# ascii_plain_txt = "201022 Fiqey sedang demo Tugas 1 DES ABC"
+# plain_txt = ascii_plain_txt.encode('utf-8').hex()
+# print("(ASCII) Plain Text : ", ascii_plain_txt)
 
-print("Encryption")
+plain_txt = "201022ACDAB891238234"
+key = "ABC16082001DFAAB"
+
+print("Plain Text : ", plain_txt)
+print("Key : ", key)
+print("-" * 100)
+
+print("Encryption".upper())
 cipher_text = DES(plain_txt, key).encrypt()
 print("Cipher Text : ", cipher_text)
+print("-" * 100)
 
-print()
+print("Decryption".upper())
+decrypt_txt = DES(cipher_text, key).decrypt()[:len(plain_txt)]
+print("(Decrypt) Plain Text : ", decrypt_txt)
 
-print("Decryption")
-text = DES(cipher_text, key).decrypt()
-print("Plain Text : ", text)
+# ascii_decrypt_txt = bytes.fromhex(decrypt_txt).decode("ASCII")
+# print("(Decrypt - ASCII) Plain Text : ", ascii_decrypt_txt)
