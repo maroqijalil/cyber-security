@@ -239,11 +239,11 @@ class DES:
         return Binary.to_hex(result)
 
 
-pt = "1234adAB891238234387439872"
+plain_text = "1234adAB891238234387439872"
 key = "AABB09182736CCDD"
 
 print("Encryption")
-cipher_text = DES(pt, key).encrypt()
+cipher_text = DES(plain_text, key).encrypt()
 print("Cipher Text : ", cipher_text)
 
 print("Decryption")
