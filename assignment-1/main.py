@@ -8,8 +8,6 @@ class Binary:
         for char in range(len(hex)):
             result = result + bin(int(hex[char], 16))[2:].zfill(4)
         return result
-    # def from_hex(hex):
-    #     return "".join(["{:04b}".format(int(i, 16)) for i in hex])
 
     @staticmethod
     def to_hex(binary):
@@ -17,8 +15,6 @@ class Binary:
         for char in range(0, len(binary), 4):
             result = result + hex(int(binary[char: char + 4], 2))[2:]
         return result
-    # def to_hex(bin):
-    #     return format(int(bin, 2), 'x')
 
     @staticmethod
     def to_dec(binary):
@@ -36,8 +32,6 @@ class Operation:
         for i in range(len(target)):
             permutation = permutation + source[target[i] - 1]
         return permutation
-    # def permute(source, target):
-    #     return "".join([source[i - 1] for i in target])
 
     @staticmethod
     def shift_left(source, n):
@@ -52,8 +46,6 @@ class Operation:
             else:
                 result = result + "1"
         return result
-    # def xor(bin_a, bin_b):
-    #     return "".join([str(ord(a) ^ ord(b)) for a,b in zip(bin_a, bin_b)])
 
 
 class Key:
