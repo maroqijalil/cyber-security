@@ -5,7 +5,7 @@ class Binary:
         result = ""
         for index in range(len(hex)):
             to_bin = bin(int(hex[index], 16))[2:].zfill(4)
-            result = result + to_bin
+            result += to_bin
             
             end = "\n" if (index == len(hex)-1) else "_"
             print(to_bin, end=end)
@@ -15,7 +15,7 @@ class Binary:
         result = ""
         for index in range(0, len(binary), 4):
             to_hex = hex(int(binary[index: index + 4], 2)).upper()[2:]
-            result = result + to_hex
+            result += to_hex
         return result
         
     def to_dec(binary):
@@ -176,9 +176,8 @@ class Round:
         for i in range(8): # BOX
             index = i * 6
             row = Binary.to_dec(operated_right[index] + operated_right[index + 5])
-            column = Binary.to_dec(operated_right[index + 1 : index + 5])
-            value = self.SBOX_TABLE[i][row][column]
-            result = result + Binary.from_dec(value).zfill(4)
+            col = Binary.to_dec(operated_right[index + 1 : index + 5])
+            result += Binary.from_dec(self.SBOX_TABLE[i][row][col]).zfill(4)
         return result
         
     def get_operated_text(self):
@@ -212,12 +211,10 @@ class DES:
 
     def encrypt(self):
         round_keys = Key(self.key).get_round_keys()
-
         return self.__process(round_keys)
 
     def decrypt(self):
         round_keys = Key(self.key).get_round_keys()[::-1]
-
         return self.__process(round_keys)
     
     def __process(self, round_keys):
@@ -228,7 +225,7 @@ class DES:
             plain_text = Operation.permute(plain_text, self.INITIAL_PERMUTATION)
 
             operated_text = Round(plain_text, round_keys).get_operated_text()
-            result = result + Operation.permute(operated_text, self.FINAL_PERMUTATION)
+            result += Operation.permute(operated_text, self.FINAL_PERMUTATION)
         
         return Binary.to_hex(result)
 
