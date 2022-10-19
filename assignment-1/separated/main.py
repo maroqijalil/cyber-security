@@ -2,8 +2,8 @@ from linear_des import LinearDES
 
 
 if __name__ == "__main__":
-    plain_text = "1234adAB891238klashkdakskjdk2"
-    key = "jalilas"
+    plain_text = "DEMO dilakukan pada jam yang sudah tertera melalui link google meet yang akan dikirim lewat ketua kelas atau akan langsung saya taruh disini ketika demo akan segera mulai."
+    key = "921839812u39218he812he189heh290812hre9238hr298"
 
     print("Encryption")
     cipher_text = LinearDES(plain_text, key).encrypt()
