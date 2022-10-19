@@ -69,11 +69,8 @@ class Key:
     def __init__(self, hex):
         self.key = Binary.from_hex(hex)
         self.key = Operation.permute(self.key, self.FIRST_COMPRESSION_PERMUTATION)
-        
         self.round_keys = []
-        self.__generate_round_keys()
 
-    def __generate_round_keys(self):
         left_key = self.key[:28]
         right_key = self.key[28:]
 
@@ -83,7 +80,7 @@ class Key:
             round_key = Operation.permute(left_key + right_key, self.SECOND_COMPRESSION_PERMUTATION)
 
             self.round_keys.append(round_key)
-    
+        
     def get_round_keys(self):
         return self.round_keys
 
@@ -180,7 +177,7 @@ class Round:
             result += Binary.from_dec(self.SBOX_TABLE[i][row][col]).zfill(4)
         return result
         
-    def get_operated_text(self):
+    def get_round_result(self):
         return self.left_plain_text + self.right_plain_text
 
 
@@ -224,7 +221,7 @@ class DES:
             plain_text = Binary.from_hex(self.plain_text[i:i + 16])
             plain_text = Operation.permute(plain_text, self.INITIAL_PERMUTATION)
 
-            operated_text = Round(plain_text, round_keys).get_operated_text()
+            operated_text = Round(plain_text, round_keys).get_round_result()
             result += Operation.permute(operated_text, self.FINAL_PERMUTATION)
         
         return Binary.to_hex(result)
