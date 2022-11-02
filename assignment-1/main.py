@@ -1,50 +1,41 @@
 import math
 
-
 class Binary:
-    @staticmethod
     def from_hex(hex):
         result = ""
-        for char in range(len(hex)):
-            result = result + bin(int(hex[char], 16))[2:].zfill(4)
+        for index in range(len(hex)):
+            to_bin = bin(int(hex[index], 16))[2:].zfill(4)
+            result += to_bin
+            
+            end = "\n" if (index == len(hex)-1) else "_"
+            print(to_bin, end=end)
         return result
 
-    @staticmethod
     def to_hex(binary):
         result = ""
-        for char in range(0, len(binary), 4):
-            result = result + hex(int(binary[char: char + 4], 2))[2:]
+        for index in range(0, len(binary), 4):
+            to_hex = hex(int(binary[index: index + 4], 2)).upper()[2:]
+            result += to_hex
         return result
-
-    @staticmethod
+        
     def to_dec(binary):
         return int(binary, 2)
 
-    @staticmethod
     def from_dec(dec):
         return bin(dec)[2:]
 
 
 class Operation:
-    @staticmethod
     def permute(source, target):
-        permutation = ""
-        for i in range(len(target)):
-            permutation = permutation + source[target[i] - 1]
-        return permutation
+        return "".join([source[i - 1] for i in target])
 
-    @staticmethod
     def shift_left(source, n):
         return source[n:] + source[:n]
 
-    @staticmethod
     def xor(bin_a, bin_b):
         result = ""
         for i in range(len(bin_a)):
-            if bin_a[i] == bin_b[i]:
-                result = result + "0"
-            else:
-                result = result + "1"
+            result += "0" if bin_a[i] == bin_b[i] else "1"
         return result
 
 
@@ -78,11 +69,8 @@ class Key:
     def __init__(self, hex):
         self.key = Binary.from_hex(hex)
         self.key = Operation.permute(self.key, self.FIRST_COMPRESSION_PERMUTATION)
-        
         self.round_keys = []
-        self.__generate_round_keys()
 
-    def __generate_round_keys(self):
         left_key = self.key[:28]
         right_key = self.key[28:]
 
@@ -92,12 +80,13 @@ class Key:
             round_key = Operation.permute(left_key + right_key, self.SECOND_COMPRESSION_PERMUTATION)
 
             self.round_keys.append(round_key)
-    
+        
     def get_round_keys(self):
         return self.round_keys
 
 
 class Round:
+    # E - BIT SELECTION TABLE
     EXPANSION_PERMUTATION = \
         [32, 1, 2, 3, 4, 5, 4, 5,
         6, 7, 8, 9, 8, 9, 10, 11,
@@ -157,38 +146,38 @@ class Round:
         19, 13, 30, 6,
         22, 11, 4, 25]
 
-    def __init__(self, left_plain_text, right_plain_text, round_keys):
-        self.left_plain_text = left_plain_text
-        self.right_plain_text = right_plain_text
+    def __init__(self, plain_text, round_keys):
+        self.left_plain_text = plain_text[:32]
+        self.right_plain_text = plain_text[32:]
         self.round_keys = round_keys
 
         self.__process()
 
     def __process(self):
-        for i in range(16):
+        for i in range(16): # 16 round
             operated_right = Operation.permute(self.right_plain_text, self.EXPANSION_PERMUTATION)
             operated_right = Operation.xor(operated_right, self.round_keys[i])
 
+            # S BOX PROCCESS
             operated_right = self.__substitution(operated_right)
             operated_right = Operation.permute(operated_right, self.PBOX_TABLE)
 
             self.left_plain_text = Operation.xor(self.left_plain_text, operated_right)
 
             if (i < 15):
+                # Ln save Rn-1 (pure), Rn save Rn-1 for the next step
                 self.left_plain_text, self.right_plain_text = self.right_plain_text, self.left_plain_text
 
     def __substitution(self, operated_right):
         result = ""
-        for i in range(8):
+        for i in range(8): # BOX
             index = i * 6
             row = Binary.to_dec(operated_right[index] + operated_right[index + 5])
-            column = Binary.to_dec(operated_right[index + 1 : index + 5])
-            value = self.SBOX_TABLE[i][row][column]
-            result = result + Binary.from_dec(value).zfill(4)
-        
+            col = Binary.to_dec(operated_right[index + 1 : index + 5])
+            result += Binary.from_dec(self.SBOX_TABLE[i][row][col]).zfill(4)
         return result
         
-    def get_operated_text(self):
+    def get_round_result(self):
         return self.left_plain_text + self.right_plain_text
 
 
@@ -219,33 +208,45 @@ class DES:
 
     def encrypt(self):
         round_keys = Key(self.key).get_round_keys()
-
         return self.__process(round_keys)
 
     def decrypt(self):
         round_keys = Key(self.key).get_round_keys()[::-1]
-
         return self.__process(round_keys)
     
     def __process(self, round_keys):
         result = ""
-        for i in range(0, len(self.plain_text), 16):
+        for i in range(0, len(self.plain_text), 16): # per 16 digit
+            print(self.plain_text[i:i + 16])
             plain_text = Binary.from_hex(self.plain_text[i:i + 16])
             plain_text = Operation.permute(plain_text, self.INITIAL_PERMUTATION)
 
-            operated_text = Round(plain_text[:32], plain_text[32:], round_keys).get_operated_text()
-            result = result + Operation.permute(operated_text, self.FINAL_PERMUTATION)
+            operated_text = Round(plain_text, round_keys).get_round_result()
+            result += Operation.permute(operated_text, self.FINAL_PERMUTATION)
         
         return Binary.to_hex(result)
 
 
-plain_text = "1234adAB891238234387439872"
-key = "AABB09182736CCDD"
+print("Initialization".upper())
+# ascii_plain_txt = "201022 Fiqey sedang demo Tugas 1 DES ABC"
+# plain_txt = ascii_plain_txt.encode('utf-8').hex()
+# print("(ASCII) Plain Text : ", ascii_plain_txt)
 
-print("Encryption")
-cipher_text = DES(plain_text, key).encrypt()
+plain_txt = "201022ACDAB891238234"
+key = "ABC16082001DFAAB"
+
+print("Plain Text : ", plain_txt)
+print("Key : ", key)
+print("-" * 100)
+
+print("Encryption".upper())
+cipher_text = DES(plain_txt, key).encrypt()
 print("Cipher Text : ", cipher_text)
+print("-" * 100)
 
-print("Decryption")
-text = DES(cipher_text, key).decrypt()
-print("Plain Text : ", text)
+print("Decryption".upper())
+decrypt_txt = DES(cipher_text, key).decrypt()[:len(plain_txt)]
+print("(Decrypt) Plain Text : ", decrypt_txt)
+
+# ascii_decrypt_txt = bytes.fromhex(decrypt_txt).decode("ASCII")
+# print("(Decrypt - ASCII) Plain Text : ", ascii_decrypt_txt)
