@@ -16,3 +16,7 @@ class Message:
   @staticmethod
   def create(user: str, message: str) -> str:
     return f'{user}:{message}'
+
+  @staticmethod
+  def get_sender(message: str) -> str:
+    return message.split(':')[0]

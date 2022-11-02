@@ -1,5 +1,6 @@
 import socket
 from handler import Handler
+from utils import Message, Bytes
 
 
 class Client():
@@ -9,6 +10,8 @@ class Client():
     self.server_host = host
     self.server_port = port
     self.thread: Handler = None
+
+    self.name = ''
   
   def stop(self):
     self.socket.shutdown(socket.SHUT_RDWR)
@@ -25,14 +28,26 @@ class Client():
         pass
 
       self.socket.connect((self.server_host, self.server_port))
-      
-      self.thread = Handler(self.socket)
-      self.thread.start()
 
-      return True
+      reply = Bytes.to_str(self.socket.recv(4096))
+      sender = Message.get_sender(reply)
+
+      if (sender == 'server'):
+        content = Message.get_content(reply)
+
+        print(content, ' ', end='')
+        self.name = input()
+
+        self.thread = Handler(self.socket, self.name)
+        self.thread.start()
+
+        return True
+      
+      else:
+        return False
 
     except Exception:
       return False
   
-  def command(self, command) -> None:
-    self.socket.send(command.encode('utf-8'))
+  def send(self, message) -> None:
+    self.socket.send(Bytes.from_str(Message.create(self.name, message)))

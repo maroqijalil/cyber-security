@@ -13,12 +13,13 @@ args = parser.parse_args()
 client = Client(args.host, args.port)
 
 try:
+  os.system('clear')
+
   if client.connect():
-    os.system('clear')
 
     while True:
       print('>> ', end='')
-      client.command(input())
+      client.send(input())
 
 except KeyboardInterrupt:
   client.stop()

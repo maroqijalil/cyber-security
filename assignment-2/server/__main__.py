@@ -13,13 +13,12 @@ args = parser.parse_args()
 server = Server(args.host, args.port)
 
 try:
-  if server.connect():
-    os.system('clear')
+  os.system('clear')
 
-    while True:
-      server.run()
+  if server.connect():
+    server.run()
+
+  print()
 
 except KeyboardInterrupt:
-  print()
-  
   sys.exit(0)
