@@ -1,6 +1,7 @@
 import threading
 import socket
 from typing import List
+from utils import Message, Bytes
 
 
 class Handler(threading.Thread):
@@ -10,6 +11,9 @@ class Handler(threading.Thread):
     self.client_socket = client_socket
     self.target_sockets: List[socket.socket] = target_sockets
 
+    self.client_name = ''
+    self.greeting = False
+
   def stop(self) -> None:
     self.client_socket.close()
 
@@ -17,21 +21,37 @@ class Handler(threading.Thread):
       if target == self.client_socket:
         del self.target_sockets[index]
 
+  def send_message(self, message: str):
+    for target in self.target_sockets:
+      target.sendall(Bytes.from_str(message))
+
   def run(self) -> None:
     while True:
-      request = self.client_socket.recv(4096)
+      if (self.client_name):
+        message = ''
+        
+        if (not self.greeting):
+          self.greeting = True
 
-      if request:
-        response = f'Accepted {self.client_socket.getpeername()}'
-        request = request.decode("utf-8")
+          message = Message.create(self.client_name, 'join the conversation!')
 
-        print(self.client_socket.getpeername(), end=": ")
+        else:
+          reply = self.client_socket.recv(4096)
 
-        response = response.encode("utf-8")
-        for target in self.target_sockets:
-          if target != self.client_socket:
-            target.sendall(response)
+          if reply:
+            reply = Bytes.to_str(reply)
+            message = Message.create(self.client_name, reply)
+
+          else:
+            self.stop()
+            break
+
+        if (message):
+          self.send_message(message)
 
       else:
-        self.stop()
-        break
+        message = Message.create('server', 'Whats your name?')
+        self.client_socket.sendall(Bytes.from_str(message))
+
+        reply = self.client_socket.recv(4096)
+        self.client_name = Message.get_content(Bytes.to_str(reply))

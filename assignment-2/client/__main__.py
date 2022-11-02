@@ -1,6 +1,7 @@
 import argparse
 import sys
 from client import Client
+import os
 
 
 parser = argparse.ArgumentParser(description='Connect TCPClient on defined host and port')
@@ -13,6 +14,8 @@ client = Client(args.host, args.port)
 
 try:
   if client.connect():
+    os.system('clear')
+
     while True:
       print('>> ', end='')
       client.command(input())

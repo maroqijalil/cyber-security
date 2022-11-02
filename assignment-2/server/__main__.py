@@ -1,6 +1,7 @@
 import sys
 import argparse
 from server import Server
+import os
 
 
 parser = argparse.ArgumentParser(description='Run TCPServer on defined host and port')
@@ -13,6 +14,8 @@ server = Server(args.host, args.port)
 
 try:
   if server.connect():
+    os.system('clear')
+
     while True:
       server.run()
 
