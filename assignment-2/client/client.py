@@ -1,6 +1,7 @@
 import socket
 from handler import Handler
 from utils import Message, Bytes
+from linear_des import LinearDES
 
 
 class Client():
@@ -11,14 +12,15 @@ class Client():
     self.server_port = port
     self.thread: Handler = None
 
-    self.name = ''
-  
+    self.des = LinearDES('9182ye198ye289h12387e9')
+
   def stop(self):
     self.socket.shutdown(socket.SHUT_RDWR)
 
-    self.thread.stop()
-    self.thread.join()
-  
+    if (self.thread):
+      self.thread.stop()
+      self.thread.join()
+
   def connect(self) -> bool:
     try:
       self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -35,19 +37,22 @@ class Client():
       if (sender == 'server'):
         content = Message.get_content(reply)
 
-        print(content, ' ', end='')
-        self.name = input()
+        print(content, '', end='')
+        name = input()
 
-        self.thread = Handler(self.socket, self.name)
+        self.socket.sendall(Bytes.from_str(Message.create(name, name)))
+
+        self.thread = Handler(self.socket, name, self.des)
         self.thread.start()
 
         return True
-      
+
       else:
         return False
 
     except Exception:
       return False
-  
+
   def send(self, message) -> None:
-    self.socket.send(Bytes.from_str(Message.create(self.name, message)))
+    message = self.des.encrypt(message)
+    self.socket.send(Bytes.from_str(message))

@@ -4,9 +4,12 @@ from client import Client
 import os
 
 
-parser = argparse.ArgumentParser(description='Connect TCPClient on defined host and port')
-parser.add_argument('--host', help='specify the host that will be connected to', type=str, default='localhost')
-parser.add_argument('--port', help='specify the port which is used', type=int, default=5000)
+parser = argparse.ArgumentParser(
+    description='Connect TCPClient on defined host and port')
+parser.add_argument(
+    '--host', help='specify the host that will be connected to', type=str, default='localhost')
+parser.add_argument(
+    '--port', help='specify the port which is used', type=int, default=5000)
 
 args = parser.parse_args()
 
@@ -16,10 +19,9 @@ try:
   os.system('clear')
 
   if client.connect():
-
     while True:
       print('>> ', end='')
-      client.send(input())
+      client.send(input('>> '))
 
 except KeyboardInterrupt:
   client.stop()

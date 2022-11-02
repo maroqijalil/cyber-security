@@ -22,6 +22,8 @@ class Handler(threading.Thread):
         del self.target_sockets[index]
 
   def send_message(self, message: str):
+    print(self.client_name, Message.get_content(message))
+
     for target in self.target_sockets:
       target.sendall(Bytes.from_str(message))
 
@@ -29,11 +31,11 @@ class Handler(threading.Thread):
     while True:
       if (self.client_name):
         message = ''
-        
+
         if (not self.greeting):
           self.greeting = True
 
-          message = Message.create(self.client_name, 'join the conversation!')
+          message = Message.create_greeting(self.client_name)
 
         else:
           reply = self.client_socket.recv(4096)
@@ -53,5 +55,5 @@ class Handler(threading.Thread):
         message = Message.create('server', 'Whats your name?')
         self.client_socket.sendall(Bytes.from_str(message))
 
-        reply = self.client_socket.recv(4096)
-        self.client_name = Message.get_content(Bytes.to_str(reply))
+        reply = Bytes.to_str(self.client_socket.recv(4096))
+        self.client_name = Message.get_content(reply)
