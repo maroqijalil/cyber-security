@@ -1,11 +1,13 @@
 import threading
+import socket
+import os
 
 
 class Handler(threading.Thread):
   def __init__(self, server_socket) -> None:
     threading.Thread.__init__(self)
 
-    self.server_socket = server_socket
+    self.server_socket: socket.socket = server_socket
     self.is_runnning = True
 
   def stop(self) -> None:
@@ -17,6 +19,7 @@ class Handler(threading.Thread):
       response = self.server_socket.recv(4096)
 
       if response:
+        os.system('clear')
         print(response.decode("utf-8"))
 
       else:

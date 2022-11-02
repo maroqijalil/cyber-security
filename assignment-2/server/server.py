@@ -50,7 +50,7 @@ class Server():
 
             self.target_sockets.append(client_socket)
 
-      except KeyboardInterrupt:
+      except:
         is_running = False
 
     self.server_socket.close()

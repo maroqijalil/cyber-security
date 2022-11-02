@@ -19,4 +19,6 @@ try:
 
 except KeyboardInterrupt:
   client.stop()
+  print()
+
   sys.exit(0)

@@ -11,7 +11,7 @@ class Client():
     self.thread: Handler = None
   
   def stop(self):
-    self.socket.close()
+    self.socket.shutdown(socket.SHUT_RDWR)
 
     self.thread.stop()
     self.thread.join()

@@ -17,4 +17,6 @@ try:
       server.run()
 
 except KeyboardInterrupt:
+  print()
+  
   sys.exit(0)

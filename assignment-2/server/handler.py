@@ -9,9 +9,13 @@ class Handler(threading.Thread):
 
     self.client_socket = client_socket
     self.target_sockets: List[socket.socket] = target_sockets
-  
-  def update_target_sockets(self, target_sockets) -> None:
-    self.target_sockets = target_sockets
+
+  def stop(self) -> None:
+    self.client_socket.close()
+
+    for index, target in enumerate(self.target_sockets):
+      if target == self.client_socket:
+        del self.target_sockets[index]
 
   def run(self) -> None:
     while True:
@@ -22,12 +26,12 @@ class Handler(threading.Thread):
         request = request.decode("utf-8")
 
         print(self.client_socket.getpeername(), end=": ")
-        print(request)
 
         response = response.encode("utf-8")
         for target in self.target_sockets:
-          target.sendall(response)
+          if target != self.client_socket:
+            target.sendall(response)
 
       else:
-        self.client_socket.close()
+        self.stop()
         break
