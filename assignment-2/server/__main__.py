@@ -13,7 +13,10 @@ args = parser.parse_args()
 server = Server(args.host, args.port)
 
 try:
-  os.system('clear')
+  if sys.platform == "win32":
+    os.system('cls')
+  else:
+    os.system('clear')
 
   if server.connect():
     server.run()

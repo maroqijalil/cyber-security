@@ -1,6 +1,7 @@
 import threading
 import socket
 import os
+import sys
 from typing import Dict, List
 from utils import Bytes, Message
 from linear_des import LinearDES
@@ -24,13 +25,16 @@ class Handler(threading.Thread):
 
   def filter_sender(self, sender) -> str:
     if (sender == self.name):
-      return 'you'
+      return 'You'
 
     else:
       return sender
 
   def print_messages(self):
-    os.system('clear')
+    if sys.platform == "win32":
+      os.system('cls')
+    else:
+      os.system('clear')
 
     for message in self.messages:
       for sender, content in message.items():

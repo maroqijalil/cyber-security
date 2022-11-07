@@ -2,6 +2,7 @@ import argparse
 import sys
 from client import Client
 import os
+import tkinter as tk
 
 
 parser = argparse.ArgumentParser(
@@ -16,7 +17,10 @@ args = parser.parse_args()
 client = Client(args.host, args.port)
 
 try:
-  os.system('clear')
+  if sys.platform == "win32":
+    os.system('cls')
+  else:
+    os.system('clear')
 
   if client.connect():
     while True:
