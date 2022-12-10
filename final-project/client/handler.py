@@ -8,11 +8,13 @@ from linear_des import LinearDES
 
 
 class Handler(threading.Thread):
-  def __init__(self, server_socket, name, des: LinearDES) -> None:
+  def __init__(self, server_socket, name, des: LinearDES, server_key_socket) -> None:
     threading.Thread.__init__(self)
 
     self.server_socket: socket.socket = server_socket
     self.is_runnning = True
+
+    self.server_key_socket: socket.socket = server_key_socket
 
     self.messages: List[Dict[str, str]] = []
     self.name = name

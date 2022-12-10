@@ -35,12 +35,24 @@ class Message:
 
 class Request:
   @staticmethod
-  def generate(id_a = 'ID-A', id_b = 'ID-B'):
+  def create_set(id: str, key: str):
+    return f'set {id};{key}'
 
+  @staticmethod
+  def create_get(id_a, id_b):
     current_time = datetime.now()
     current_time = current_time.ctime()
 
-    return f'{id_a};{id_b};{current_time}', current_time
+    return f'get {id_a};{id_b};{current_time}'
+  
+  @staticmethod
+  def validate_from_get(response: str, request: str):
+    responses = response.split(';')
+
+    if (responses[1:] == request):
+      return responses[0]
+    
+    return None
 
   @staticmethod
   def validate_time(request: str, time: str):

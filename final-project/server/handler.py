@@ -8,7 +8,7 @@ class Handler(threading.Thread):
   def __init__(self, client_socket, target_sockets) -> None:
     threading.Thread.__init__(self)
 
-    self.client_socket = client_socket
+    self.client_socket: socket.socket = client_socket
     self.target_sockets: List[socket.socket] = target_sockets
 
     self.client_name = ''

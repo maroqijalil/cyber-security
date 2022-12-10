@@ -48,7 +48,7 @@ class Handler(threading.Thread):
             reply = Request.generate_from_get(self.client_keys.get(target), request[1])
         
         if (reply):
-          self.client_socket.sendall(reply)
+          self.client_socket.sendall(Bytes.from_str(reply))
 
       else:
         self.stop()

@@ -70,3 +70,15 @@ encrypted = rsa.encrypt(decrypted, keyPair=rsa.getPrivateKey()) #Server uses pri
 print(message)
 print(encrypted)
 print(decrypted)
+
+thisdict =	{
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+
+for x, v in thisdict.items():
+  print(v)
+  thisdict[x] = 'asd'
+for x in thisdict.values():
+  print(x)
