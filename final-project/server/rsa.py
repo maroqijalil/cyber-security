@@ -107,10 +107,10 @@ print("m in str : ", message)
 encrypted = rsa.encrypt(message, public_key=rsa.get_public_key()) 
 decrypted = rsa.decrypt(encrypted, private_key=rsa.get_private_key()) 
 
-print('---' * 40)
+print('------------------------------------------------------------------------------------------------------------------------')
 print("encrypted : ", encrypted)
 print("decrypted in str : ", decrypted)
 
-print('---' * 40)
+print('------------------------------------------------------------------------------------------------------------------------')
 if (decrypted == message):
     print("SUCCESSFULL!!!")
