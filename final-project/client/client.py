@@ -5,12 +5,17 @@ from linear_des import LinearDES
 
 
 class Client():
-  def __init__(self, host, port) -> None:
+  def __init__(self, host, port, key_host, key_port) -> None:
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     self.server_host = host
     self.server_port = port
     self.thread: Handler = None
+
+    self.socket_key = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    self.server_key_host = key_host
+    self.server_key_port = key_port
 
     self.des = LinearDES('9182ye198ye289h12387e9')
 
@@ -24,12 +29,17 @@ class Client():
   def connect(self) -> bool:
     try:
       self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+      self.socket_key.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+      
       try:
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        self.socket_key.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+      
       except AttributeError:
         pass
 
       self.socket.connect((self.server_host, self.server_port))
+      self.socket_key.connect((self.server_host, self.server_port))
 
       reply = Bytes.to_str(self.socket.recv(4096))
       sender = Message.get_sender(reply)

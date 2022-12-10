@@ -1,6 +1,3 @@
-from datetime import datetime
-
-
 class Bytes:
   @staticmethod
   def from_str(str) -> bytes:
@@ -35,15 +32,15 @@ class Message:
 
 class Request:
   @staticmethod
-  def generate(id_a = 'ID-A', id_b = 'ID-B'):
-
-    current_time = datetime.now()
-    current_time = current_time.ctime()
-
-    return f'{id_a};{id_b};{current_time}', current_time
+  def parse_set(request: str):
+    request = request.split(';')
+    return request[0], request[1]
 
   @staticmethod
-  def validate_time(request: str, time: str):
-    request = request.split(';')[-1]
-
-    return request == time
+  def parse_get(request: str):
+    request = request.split(';')
+    return request[0], request[1], request[2]
+  
+  @staticmethod
+  def generate_from_get(key: str, request: str):
+    return f'{key};{request}'
