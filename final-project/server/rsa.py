@@ -5,26 +5,27 @@ class RSA:
     def __init__(self):
         self.e = self.d = self.p = self.q = self.phi_n = 0
         self.is_msg_str = False
-    
+  
     def __mod_inv(self, A, M):
-        # e, phi_n; d = 1 mod phi_n / e
+        # x * A mod M = 1
+        print(A, M)
         m0 = M
         y = 0
         x = 1
 
         if (M == 1):
-          return 0
+          raise Exception('modular inverse does not exist')
         
-        while (A > 1):
+        while (A > 1): # stop until A = 1; M = 0;
           q = A // M
-          t = M 
-
+          
+          temp = M 
           M = A % M
-          A = t
-          t = y
-
+          A = temp
+          
+          temp = y
           y = x - q * y
-          x = t
+          x = temp
         
         if (x < 0):
           x = x + m0
@@ -92,21 +93,7 @@ class RSA:
     
     def get_max_message_bits(self):
         return self.n.bit_length()
-
-    # def __egcd(self, a, b):
-    #     if a == 0:
-    #         return (b, 0, 1)
-    #     else:
-    #         g, y, x = self.__egcd(b % a, a)
-    #         return (g, x - (b // a) * y, y)
-
-    # def __modinv(self, a, m):
-    #     g, x, y = self.__egcd(a, m)
-    #     if g != 1:
-    #         raise Exception('modular inverse does not exist')
-    #     else:
-    #         return x % m
-
+        
 
 rsa = RSA()
 p = 17055899557196527525682810191339089909014331959812898993437334555169285087976951946809555356817674844913188193949144165887100694620944167618997411049745043243260854998720061941490491091205087788373487296637817044103762239946752241631032791287021875863785226376406279424552454153388492970310795447866569138481
