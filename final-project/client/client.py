@@ -21,9 +21,11 @@ class Client():
     self.server_key_port = key_port
     self.thread_key: HandlerKey = None
 
-    p = 17055899557196527525682810191339089909014331959812898993437334555169285087976951946809555356817674844913188193949144165887100694620944167618997411049745043243260854998720061941490491091205087788373487296637817044103762239946752241631032791287021875863785226376406279424552454153388492970310795447866569138481
-    q = 171994050316145327367864378293770397343246561147593187377005295591120640129800725892235968688434055779668692095961697434700708550594137135605048681344218643671046905252163983827396726536078773766353616572531688390937410451433665914394068509329532352022301339189851111636176939179510955519440490431177444857017
+    # 48 digits
+    p = 786287537753406666185810464356342863432256602639
+    q = 585724299028731854439673592969136581559573957839
     self.client_rsa = RSA(p, q)
+
     self.auth_key = ''
     self.client_keys: Dict[str, RSAClient] = {}
 
@@ -76,7 +78,6 @@ class Client():
 
           self.socket_key.sendall(Bytes.from_str(Request.create_set(name, str(self.client_rsa.get_public_key()))))
           responses = Bytes.to_str(self.socket_key.recv(4096)).split(';')
-          print(responses)
 
           self.auth_key = responses[0]
           if len(responses) > 1:
@@ -86,7 +87,7 @@ class Client():
             self.thread = Handler(self.socket, name, self.client_des, self.client_keys)
             self.thread.start()
 
-            self.thread_key = HandlerKey(self.socket_key, name, self.client_des, self.client_rsa, self.client_keys, len(content) == 1)
+            self.thread_key = HandlerKey(self.socket_key, name, self.client_des, self.client_rsa, self.client_keys, self.auth_key, len(content) == 1)
             self.thread_key.start()
 
             return True

@@ -8,7 +8,7 @@ from copy import deepcopy
 
 
 class HandlerKey(threading.Thread):
-  def __init__(self, server_key_socket, name, client_des, client_key, client_keys, is_initator) -> None:
+  def __init__(self, server_key_socket, name, client_des, client_key, client_keys, auth_key, is_initator) -> None:
     threading.Thread.__init__(self)
 
     self.is_initator: bool = is_initator
@@ -19,6 +19,7 @@ class HandlerKey(threading.Thread):
     self.client_des: LinearDES = client_des
 
     self.client_key: RSA = client_key
+    self.auth_key: str = auth_key
 
     self.client_keys: Dict[str, RSAClient]  = client_keys 
 
@@ -33,6 +34,10 @@ class HandlerKey(threading.Thread):
         self.server_key_socket.sendall(Bytes.from_str(request))
 
         response = Bytes.to_str(self.server_key_socket.recv(4096))
+        
+        exp, mod = RSA.split_exp_mod_public(RSA.from_str(self.auth_key))
+        response = RSA.decrypt_from(response, exp, mod)
+
         key = Request.validate_from_get(response, request)
 
         if (key):

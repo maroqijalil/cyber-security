@@ -52,6 +52,7 @@ class Handler(threading.Thread):
 
           if (sender == self.client_id):
             response = Request.generate_from_get(self.client_keys.get(target), request)
+            response = self.server_rsa.sign(response)
 
         if (response):
           self.client_socket.sendall(Bytes.from_str(response))
