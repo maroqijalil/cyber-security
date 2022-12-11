@@ -28,10 +28,10 @@ try:
 
   if client.connect():
     while True:
-      print('>> ', end='')
-      client.send(input())
+      client.send()
   
   else:
+    client.stop()
     print('failed to connect')
 
 except KeyboardInterrupt:

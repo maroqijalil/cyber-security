@@ -8,10 +8,9 @@ from copy import deepcopy
 
 
 class HandlerKey(threading.Thread):
-  def __init__(self, server_key_socket, name, client_des, client_key, client_keys, auth_key, is_initator) -> None:
+  def __init__(self, server_key_socket, name, client_des, client_key, client_keys, auth_key) -> None:
     threading.Thread.__init__(self)
 
-    self.is_initator: bool = is_initator
     self.is_runnning = True
     self.server_key_socket: socket.socket = server_key_socket
 
@@ -27,27 +26,30 @@ class HandlerKey(threading.Thread):
     self.is_runnning = False
     self.server_key_socket.close()
 
-  def check_clients(self):
-    for id in self.client_keys:
-      if id != self.client_id and not self.client_keys[id]:
-        request = Request.create_get(self.client_id, id)
-        self.server_key_socket.sendall(Bytes.from_str(request))
+  @staticmethod
+  def update_keys(server_key_socket: socket.socket, client_id, client_keys, auth_key):
+    for id in client_keys:
+      if id != client_id and not client_keys[id]:
+        request = Request.create_get(client_id, id)
+        server_key_socket.sendall(Bytes.from_str(request))
 
-        response = Bytes.to_str(self.server_key_socket.recv(4096))
+        response = Bytes.to_str(server_key_socket.recv(4096))
         
-        exp, mod = RSA.split_exp_mod_public(RSA.from_str(self.auth_key))
+        exp, mod = RSA.split_exp_mod_public(RSA.from_str(auth_key))
         response = RSA.decrypt_from(response, exp, mod)
 
         key = Request.validate_from_get(response, request)
 
         if (key):
-          self.client_keys[id] = RSAClient(key)
+          client_keys[id] = RSAClient(key)
+
+  def check_clients(self):
+    HandlerKey.update_keys(self.server_key_socket, self.client_id, self.client_keys, self.auth_key)
 
   def run(self) -> None:
     while self.is_runnning:
-      if self.is_initator:
-        try:
-          self.check_clients()
+      try:
+        self.check_clients()
 
-        except Exception:
-          pass
+      except Exception:
+        pass

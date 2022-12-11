@@ -271,6 +271,7 @@ class DES:
 
 class LinearDES:
   def __init__(self, key):
+    self.key = key
     self.keys = Data(key).get_list()
 
   def encrypt(self, plain_text):

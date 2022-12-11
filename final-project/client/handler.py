@@ -48,6 +48,14 @@ class Handler(threading.Thread):
           if sender not in self.client_keys:
             self.client_keys[sender] = None
 
+        elif (Message.is_farewell(content)):
+          print()
+          print(f'\t{self.filter_sender(sender)}', content)
+          print()
+
+          if sender in self.client_keys:
+            del self.client_keys[sender]
+
         else:
           print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
 

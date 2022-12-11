@@ -27,9 +27,10 @@ class Handler(threading.Thread):
   def run(self) -> None:
     while True:
       message = Bytes.to_str(self.client_socket.recv(4096))
-      print(message)
 
       if message:
+        print(message)
+ 
         request = message.split(' ')
         response = ''
 
@@ -39,12 +40,13 @@ class Handler(threading.Thread):
           self.client_id, self.client_key = Request.parse_set(request)
           self.client_keys[self.client_id] = self.client_key
 
-          response = self.server_rsa.get_public_key()
+          response = f'{self.server_rsa.get_public_key()}'
 
           client_public_key: Tuple[int, int] = RSA.from_str(self.client_key)
           exp, mod = RSA.split_exp_mod_public(client_public_key)
 
-          response = f'{response};{RSA.encrypt_from(self.session_key, exp, mod)}'
+          if len(self.client_keys) == 1:
+            response = f'{response};{RSA.encrypt_from(self.session_key, exp, mod)}'
 
         elif (request[0] == 'get'):
           request = (' ').join(request[1:])

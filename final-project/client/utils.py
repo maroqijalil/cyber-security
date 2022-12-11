@@ -25,12 +25,20 @@ class Message:
     return f'{user}:join the conversation!'
 
   @staticmethod
+  def create_farewell(user: str) -> str:
+    return f'{user}:left the conversation!'
+
+  @staticmethod
   def get_sender(message: str) -> str:
     return message.split(':')[0]
 
   @staticmethod
   def is_greeting(message: str) -> bool:
     return 'join the conversation' in message
+
+  @staticmethod
+  def is_farewell(message: str) -> bool:
+    return 'left the conversation' in message
 
 
 class Request:

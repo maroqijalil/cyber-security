@@ -22,6 +22,9 @@ class Handler(threading.Thread):
       if target == self.client_socket:
         del self.target_sockets[index]
 
+    message = Message.create_farewell(self.client_name)
+    self.send_message(message)
+
   def send_message(self, message: str):
     print(self.client_name, Message.get_content(message))
 
@@ -37,7 +40,11 @@ class Handler(threading.Thread):
 
     self.client_names.append(self.client_name)
 
-    message = Message.create('server', (',').join(self.client_names))
+    content = ''
+    if len(self.client_names) > 1:
+      content = self.client_names[0]
+
+    message = Message.create('server', content)
     self.client_socket.sendall(Bytes.from_str(message))
 
     message = Message.create_greeting(self.client_name)
