@@ -1,9 +1,71 @@
 import random
 import math
 import ast
+from typing import Tuple
 
 
 class RSA:
+  @staticmethod
+  def to_str(key):
+    return str(key)
+
+  @staticmethod
+  def from_str(key):
+    return ast.literal_eval(key)
+
+  @staticmethod
+  def split_exp_mod_public(key: Tuple[int, int]):
+    return key[1], key[0]
+
+  @staticmethod
+  def split_exp_mod_private(key: Tuple[int, int, int]):
+    return key[2], key[0] * key[1]
+  
+  @staticmethod
+  def encrypt_from(m, exp, mod):
+    is_str = False
+
+    if isinstance(m, str):
+      is_str = True
+
+      plain = [str(ord(l)).ljust(3, '0') for l in m]
+      m = int(''.join(plain))
+
+    encrypted = pow(m, exp, mod)
+
+    if is_str:
+      encrypted = str(encrypted)
+
+    return encrypted
+
+  @staticmethod
+  def decrypt_from(c, exp, mod):
+    is_str = False
+
+    if isinstance(c, str):
+      is_str = True
+      c = int(c)
+
+    decrypted = pow(c, exp, mod)
+
+    if is_str:
+      dc_raw = str(decrypted)
+      dc_str = ''
+
+      while dc_raw != '':
+        p = dc_raw[:3]
+      
+        if (int(p) > 128):
+          dc_str += chr(int(p)//10)
+      
+        else: 
+          dc_str += chr(int(p))
+        dc_raw = dc_raw[3:]
+
+      decrypted = dc_str
+
+    return decrypted
+
   def __init__(self, p, q):
     self.p = p
     self.q = q
@@ -48,61 +110,20 @@ class RSA:
     self.d = self.__modular_inverse(self.e, self.phi_n)
 
   def encrypt(self, m, sign = False):
-    is_str = False
-
-    if isinstance(m, str):
-      is_str = True
-
-      plain = [str(ord(l)).ljust(3, '0') for l in m]
-      m = int(''.join(plain))
-  
-    exp = self.e
-    mod = self.n
+    exp, mod = RSA.split_exp_mod_public(self.get_public_key())
 
     if sign:
-      exp = self.d
-      mod = self.p * self.q
+      exp, mod = RSA.split_exp_mod_private(self.get_private_key())
 
-    encrypted = pow(m, exp, mod)
-
-    if is_str:
-      encrypted = str(encrypted)
-
-    return encrypted
+    return RSA.encrypt_from(m, exp, mod)
 
   def decrypt(self, c, sign = False):
-    is_str = False
-
-    if isinstance(c, str):
-      is_str = True
-      c = int(c)
-
-    exp = self.d
-    mod = self.p * self.q
+    exp, mod = RSA.split_exp_mod_private(self.get_private_key())
 
     if sign:
-      exp = self.e
-      mod = self.n
+      exp, mod = RSA.split_exp_mod_public(self.get_public_key())
 
-    decrypted = pow(c, exp, mod)
-
-    if is_str:
-      dc_raw = str(decrypted)
-      dc_str = ''
-
-      while dc_raw != '':
-        p = dc_raw[:3]
-      
-        if (int(p) > 128):
-          dc_str += chr(int(p)//10)
-      
-        else: 
-          dc_str += chr(int(p))
-        dc_raw = dc_raw[3:]
-
-      decrypted = dc_str
-
-    return decrypted
+    return RSA.decrypt_from(c, exp, mod)
 
   def sign(self, m):
     return self.encrypt(m, True)
@@ -119,19 +140,26 @@ class RSA:
   def maximum_bits(self):
     return self.n.bit_length()
 
-  @staticmethod
-  def to_str(key):
-    return str(key)
 
-  @staticmethod
-  def from_str(key):
-    return ast.literal_eval(key)
+class RSAClient:
+  def __init__(self, public_key: str) -> None:
+    self.is_paired = False
+    self.public_key = public_key
+    self.n, self.e = RSA.from_str(public_key)
+
+    self.n_verification = random.randint(0, self.n)
+
+  def get_pair_request():
+    pass
 
 
 p = 17055899557196527525682810191339089909014331959812898993437334555169285087976951946809555356817674844913188193949144165887100694620944167618997411049745043243260854998720061941490491091205087788373487296637817044103762239946752241631032791287021875863785226376406279424552454153388492970310795447866569138481
 q = 171994050316145327367864378293770397343246561147593187377005295591120640129800725892235968688434055779668692095961697434700708550594137135605048681344218643671046905252163983827396726536078773766353616572531688390937410451433665914394068509329532352022301339189851111636176939179510955519440490431177444857017
 rsa = RSA(p, q)
-message = 'aasd38423h9nrh92038nry9834hn0rn89'
+
+import secrets
+
+message = secrets.token_hex(64)
 
 # Encrypting and decrypting
 encrypted = rsa.encrypt(message) #Server uses private key to encrypt and decrypt messages
@@ -154,4 +182,4 @@ dict = {
 }
 
 print(dict)
-print(dict['jalil'])
+print(len('1849241201626137308966441475325337061559389847521166687125027493799474708984922874402319833153194433499968595115088217825847397438677961835509173520240316680585431031572950468947650702470323615604698954451988372142795324145194303506213329577040685534598204332565544305087123945039472098163751617456203421967002280714856812253095568006457869460581513149902578416191038607620100034873561143096802433786716117143711077679164363996072881735554299973744868276104604200967270676997664931251006934866248274150580069061901904745240453176368975380264121948978400672792562693830249934038804331119617965537810016667724760302797'.encode('utf-8')))

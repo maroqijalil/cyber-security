@@ -18,7 +18,6 @@ class HandlerKey(threading.Thread):
     self.client_des: LinearDES = client_des
 
     self.client_key: RSA = client_key
-    self.auth_key = ''
 
     self.client_keys: Dict[str, str]  = client_keys 
 
@@ -39,8 +38,5 @@ class HandlerKey(threading.Thread):
           self.client_keys[id] = key
 
   def run(self) -> None:
-    self.server_key_socket.sendall(Bytes.from_str(Request.create_set(self.client_id, self.client_key)))
-    self.auth_key = Bytes.to_str(self.server_key_socket.recv(4096))
-
     while self.is_runnning:
       self.check_clients()

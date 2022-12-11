@@ -2,6 +2,8 @@ import socket
 import select
 from typing import List, Dict
 from handler import Handler
+from rsa import RSA
+import secrets
 
 
 class Server():
@@ -10,7 +12,12 @@ class Server():
 
     self.host = host
     self.port = port
-    self.auth_key = ''
+
+    p = 17055899557196527525682810191339089909014331959812898993437334555169285087976951946809555356817674844913188193949144165887100694620944167618997411049745043243260854998720061941490491091205087788373487296637817044103762239946752241631032791287021875863785226376406279424552454153388492970310795447866569138481
+    q = 171994050316145327367864378293770397343246561147593187377005295591120640129800725892235968688434055779668692095961697434700708550594137135605048681344218643671046905252163983827396726536078773766353616572531688390937410451433665914394068509329532352022301339189851111636176939179510955519440490431177444857017
+    self.server_rsa = RSA(p, q)
+
+    self.session_key = secrets.token_hex(32)
 
     self.client_keys: Dict[str, str] = {}
     self.client_threads: List[Handler] = []
@@ -45,7 +52,7 @@ class Server():
           if ready_socket == self.server_socket:
             client_socket, _ = self.server_socket.accept()
 
-            client = Handler(client_socket, self.client_keys, self.auth_key)
+            client = Handler(client_socket, self.client_keys, self.server_rsa)
             client.start()
             self.client_threads.append(client)
 
