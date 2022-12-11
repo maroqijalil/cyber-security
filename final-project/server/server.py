@@ -13,6 +13,7 @@ class Server():
 
     self.target_sockets: List[socket.socket] = []
     self.client_threads: List[Handler] = []
+    self.client_names: List[str] = []
 
   def __del__(self):
     self.server_socket.close()

@@ -5,11 +5,13 @@ from utils import Message, Bytes
 
 
 class Handler(threading.Thread):
-  def __init__(self, client_socket, target_sockets) -> None:
+  def __init__(self, client_socket, target_sockets, client_names) -> None:
     threading.Thread.__init__(self)
 
     self.client_socket: socket.socket = client_socket
+
     self.target_sockets: List[socket.socket] = target_sockets
+    self.client_names: List[str] = client_names
 
     self.client_name = ''
     self.greeting = False
@@ -26,16 +28,25 @@ class Handler(threading.Thread):
 
     for target in self.target_sockets:
       target.sendall(Bytes.from_str(message))
+  
+  def send_message_self(self, message: str):
+    print(self.client_name, message)
+
+    self.client_socket.sendall(Bytes.from_str(message))
 
   def run(self) -> None:
     while True:
       if (self.client_name):
         message = ''
+        message_self = ''
 
         if (not self.greeting):
           self.greeting = True
 
           message = Message.create_greeting(self.client_name)
+
+          message_self = Message.create('server', (',').join(self.client_names))
+          self.send_message(message_self)
 
         else:
           reply = self.client_socket.recv(4096)
@@ -51,9 +62,14 @@ class Handler(threading.Thread):
         if (message):
           self.send_message(message)
 
+        if (message_self):
+          self.send_message_self(message_self)
+
       else:
         message = Message.create('server', 'Whats your name?')
         self.client_socket.sendall(Bytes.from_str(message))
 
         reply = Bytes.to_str(self.client_socket.recv(4096))
         self.client_name = Message.get_content(reply)
+
+        self.client_names.append(self.client_name)

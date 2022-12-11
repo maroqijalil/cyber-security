@@ -128,30 +128,13 @@ class RSA:
     return ast.literal_eval(key)
 
 
-p = 17055899557196527525682810191339089909014331959812898993437334555169285087976951946809555356817674844913188193949144165887100694620944167618997411049745043243260854998720061941490491091205087788373487296637817044103762239946752241631032791287021875863785226376406279424552454153388492970310795447866569138481
-q = 171994050316145327367864378293770397343246561147593187377005295591120640129800725892235968688434055779668692095961697434700708550594137135605048681344218643671046905252163983827396726536078773766353616572531688390937410451433665914394068509329532352022301339189851111636176939179510955519440490431177444857017
-rsa = RSA(p, q)
-message = 'aasd38423h9nrh92038nry9834hn0rn89'
+class RSAClient:
+  def __init__(self, public_key: str) -> None:
+    self.is_paired = False
+    self.public_key = public_key
+    self.n, self.e = RSA.from_str(public_key)
 
-# Encrypting and decrypting
-encrypted = rsa.encrypt(message) #Server uses private key to encrypt and decrypt messages
-decrypted = rsa.decrypt(encrypted) #Clients use public key to encrypt and decrypt messages
+    self.n_verification = random.randint(0, self.n)
 
-print(message)
-print(encrypted)
-print(decrypted)
-
-encrypted = rsa.sign(message) #Server uses private key to encrypt and decrypt messages
-decrypted = rsa.verify(encrypted) #Clients use public key to encrypt and decrypt messages
-
-print(message)
-print(encrypted)
-print(decrypted)
-print(len('jalil,asd'.split(',')))
-
-dict = {
-    'jalil': None
-}
-
-print(dict)
-print(dict['jalil'])
+  def get_pair_request():
+    pass

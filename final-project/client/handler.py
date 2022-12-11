@@ -5,28 +5,28 @@ import sys
 from typing import Dict, List
 from utils import Bytes, Message
 from linear_des import LinearDES
+from rsa import RSAClient
 
 
 class Handler(threading.Thread):
-  def __init__(self, server_socket, name, des: LinearDES, server_key_socket) -> None:
+  def __init__(self, server_socket, name, client_des: LinearDES, client_keys) -> None:
     threading.Thread.__init__(self)
 
     self.server_socket: socket.socket = server_socket
     self.is_runnning = True
 
-    self.server_key_socket: socket.socket = server_key_socket
-
     self.messages: List[Dict[str, str]] = []
-    self.name = name
+    self.client_name = name
 
-    self.des = des
+    self.client_des = client_des
+    self.client_keys: Dict[str, RSAClient] = client_keys
 
   def stop(self) -> None:
     self.is_runnning = False
     self.server_socket.close()
 
   def filter_sender(self, sender) -> str:
-    if (sender == self.name):
+    if (sender == self.client_name):
       return 'You'
 
     else:
@@ -45,8 +45,10 @@ class Handler(threading.Thread):
           print(f'\t{self.filter_sender(sender)}', content)
           print()
 
+          self.client_keys[sender] = None
+
         else:
-          print(f'{self.filter_sender(sender)}:', self.des.decrypt(content))
+          print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
 
     print()
     print('>> ')

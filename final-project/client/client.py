@@ -4,6 +4,7 @@ from handler_key import HandlerKey
 from utils import Message, Bytes
 from linear_des import LinearDES
 from typing import List, Dict
+from rsa import RSA, RSAClient
 
 
 class Client():
@@ -20,10 +21,12 @@ class Client():
     self.server_key_port = key_port
     self.thread_key: HandlerKey = None
 
-    self.client_key = ''
-    self.des = LinearDES('9182ye198ye289h12387e9')
+    p = 17055899557196527525682810191339089909014331959812898993437334555169285087976951946809555356817674844913188193949144165887100694620944167618997411049745043243260854998720061941490491091205087788373487296637817044103762239946752241631032791287021875863785226376406279424552454153388492970310795447866569138481
+    q = 171994050316145327367864378293770397343246561147593187377005295591120640129800725892235968688434055779668692095961697434700708550594137135605048681344218643671046905252163983827396726536078773766353616572531688390937410451433665914394068509329532352022301339189851111636176939179510955519440490431177444857017
+    self.client_rsa = RSA(p, q)
+    self.client_des = LinearDES('9182ye198ye289h12387e9')
 
-    self.client_keys: Dict[str, str] = {}
+    self.client_keys: Dict[str, RSAClient] = {}
 
   def stop(self):
     self.socket.shutdown(socket.SHUT_RDWR)
@@ -63,14 +66,20 @@ class Client():
         name = input()
 
         self.socket.sendall(Bytes.from_str(Message.create(name, name)))
+        reply = Bytes.to_str(self.socket.recv(4096))
+        sender = Message.get_sender(reply)
 
-        self.thread = Handler(self.socket, name, self.des, self.client_key)
-        self.thread.start()
+        if (sender == 'server'):
+          content = Message.get_content(reply)
+          content = content.split(',')
 
-        self.thread_key = HandlerKey(self.socket_key, name, self.des, self.client_key, self.client_keys)
-        self.thread_key.start()
+          self.thread = Handler(self.socket, name, self.client_des, self.client_keys)
+          self.thread.start()
 
-        return True
+          self.thread_key = HandlerKey(self.socket_key, name, self.client_des, self.client_rsa, self.client_keys, len(content) == 1)
+          self.thread_key.start()
+
+          return True
 
       else:
         return False
@@ -79,5 +88,5 @@ class Client():
       return False
 
   def send(self, message) -> None:
-    message = self.des.encrypt(message)
+    message = self.client_des.encrypt(message)
     self.socket.send(Bytes.from_str(message))
