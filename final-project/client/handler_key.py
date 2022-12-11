@@ -3,7 +3,8 @@ import socket
 from typing import Dict, List, Set
 from utils import Bytes, Request
 from linear_des import LinearDES
-from rsa import RSA
+from rsa import RSA, RSAClient
+from copy import deepcopy
 
 
 class HandlerKey(threading.Thread):
@@ -19,7 +20,7 @@ class HandlerKey(threading.Thread):
 
     self.client_key: RSA = client_key
 
-    self.client_keys: Dict[str, str]  = client_keys 
+    self.client_keys: Dict[str, RSAClient]  = client_keys 
 
   def stop(self) -> None:
     self.is_runnning = False
@@ -27,7 +28,7 @@ class HandlerKey(threading.Thread):
 
   def check_clients(self):
     for id in self.client_keys:
-      if (id != self.client_id):
+      if id != self.client_id and not self.client_keys[id]:
         request = Request.create_get(self.client_id, id)
         self.server_key_socket.sendall(Bytes.from_str(request))
 
@@ -35,8 +36,13 @@ class HandlerKey(threading.Thread):
         key = Request.validate_from_get(response, request)
 
         if (key):
-          self.client_keys[id] = key
+          self.client_keys[id] = RSAClient(key)
 
   def run(self) -> None:
     while self.is_runnning:
-      self.check_clients()
+      if self.is_initator:
+        try:
+          self.check_clients()
+
+        except Exception:
+          pass

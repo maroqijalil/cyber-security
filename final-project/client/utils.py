@@ -48,8 +48,9 @@ class Request:
   @staticmethod
   def validate_from_get(response: str, request: str):
     responses = response.split(';')
+    requests = request.split(' ')
 
-    if (responses[1:] == request):
+    if ((';').join(responses[1:]) == (' ').join(requests[1:])):
       return responses[0]
     
     return None

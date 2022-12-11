@@ -49,11 +49,7 @@ class Handler(threading.Thread):
             self.client_keys[sender] = None
 
         else:
-          if sender == 'server':
-            print(f'{self.filter_sender(sender)}:', content)
-            
-          else:
-            print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
+          print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
 
     print()
     print('>> ')
@@ -67,7 +63,6 @@ class Handler(threading.Thread):
         content = Message.get_content(reply)
 
         self.messages.append({sender: content})
-
         self.print_messages()
 
       else:

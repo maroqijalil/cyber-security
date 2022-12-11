@@ -38,7 +38,7 @@ class Handler(threading.Thread):
     self.client_names.append(self.client_name)
 
     message = Message.create('server', (',').join(self.client_names))
-    self.send_message(message)
+    self.client_socket.sendall(Bytes.from_str(message))
 
     message = Message.create_greeting(self.client_name)
     self.send_message(message)

@@ -21,9 +21,8 @@ class Handler(threading.Thread):
   def stop(self) -> None:
     self.client_socket.close()
 
-    for key in self.client_keys.keys():
-      if key == self.client_id:
-        del self.client_keys[key]
+    if self.client_id in self.client_keys:
+      del self.client_keys[self.client_id]
 
   def run(self) -> None:
     while True:
@@ -35,7 +34,9 @@ class Handler(threading.Thread):
         response = ''
 
         if (request[0] == 'set'):
-          self.client_id, self.client_key = Request.parse_set(('').join(request[1:]))
+          request = (' ').join(request[1:])
+
+          self.client_id, self.client_key = Request.parse_set(request)
           self.client_keys[self.client_id] = self.client_key
 
           response = self.server_rsa.get_public_key()
@@ -46,10 +47,11 @@ class Handler(threading.Thread):
           response = f'{response};{RSA.encrypt_from(self.session_key, exp, mod)}'
 
         elif (request[0] == 'get'):
-          sender, target, _ = Request.parse_get(request[1])
+          request = (' ').join(request[1:])
+          sender, target, _ = Request.parse_get(request)
 
           if (sender == self.client_id):
-            response = Request.generate_from_get(self.client_keys.get(target), request[1])
+            response = Request.generate_from_get(self.client_keys.get(target), request)
 
         if (response):
           self.client_socket.sendall(Bytes.from_str(response))

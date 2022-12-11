@@ -29,7 +29,7 @@ try:
   if client.connect():
     while True:
       print('>> ', end='')
-      client.send(input('>> '))
+      client.send(input())
   
   else:
     print('failed to connect')
