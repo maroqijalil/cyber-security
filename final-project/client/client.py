@@ -25,10 +25,9 @@ class Client():
     q = 171994050316145327367864378293770397343246561147593187377005295591120640129800725892235968688434055779668692095961697434700708550594137135605048681344218643671046905252163983827396726536078773766353616572531688390937410451433665914394068509329532352022301339189851111636176939179510955519440490431177444857017
     self.client_rsa = RSA(p, q)
     self.auth_key = ''
+    self.client_keys: Dict[str, RSAClient] = {}
 
     self.client_des: LinearDES = None
-
-    self.client_keys: Dict[str, RSAClient] = {}
 
   def stop(self):
     self.socket.shutdown(socket.SHUT_RDWR)
@@ -56,7 +55,7 @@ class Client():
         pass
 
       self.socket.connect((self.server_host, self.server_port))
-      self.socket_key.connect((self.server_host, self.server_port))
+      self.socket_key.connect((self.server_key_host, self.server_key_port))
 
       reply = Bytes.to_str(self.socket.recv(4096))
       sender = Message.get_sender(reply)
@@ -77,17 +76,18 @@ class Client():
 
           self.socket_key.sendall(Bytes.from_str(Request.create_set(name, str(self.client_rsa.get_public_key()))))
           responses = Bytes.to_str(self.socket_key.recv(4096)).split(';')
+          print(responses)
 
           self.auth_key = responses[0]
           if len(responses) > 1:
             self.client_des = LinearDES(self.client_rsa.decrypt(responses[1]))
 
           if self.client_des:
-            self.thread_key = HandlerKey(self.socket_key, name, self.client_des, self.client_rsa, self.client_keys, len(content) == 1)
-            self.thread_key.start()
-
             self.thread = Handler(self.socket, name, self.client_des, self.client_keys)
             self.thread.start()
+
+            self.thread_key = HandlerKey(self.socket_key, name, self.client_des, self.client_rsa, self.client_keys, len(content) == 1)
+            self.thread_key.start()
 
             return True
 

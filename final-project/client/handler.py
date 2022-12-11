@@ -45,10 +45,15 @@ class Handler(threading.Thread):
           print(f'\t{self.filter_sender(sender)}', content)
           print()
 
-          self.client_keys[sender] = None
+          if sender not in self.client_keys:
+            self.client_keys[sender] = None
 
         else:
-          print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
+          if sender == 'server':
+            print(f'{self.filter_sender(sender)}:', content)
+            
+          else:
+            print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
 
     print()
     print('>> ')

@@ -45,7 +45,7 @@ class Server():
           if ready_socket == self.server_socket:
             client_socket, _ = self.server_socket.accept()
 
-            client = Handler(client_socket, self.target_sockets)
+            client = Handler(client_socket, self.target_sockets, self.client_names)
             client.start()
             self.client_threads.append(client)
 

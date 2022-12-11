@@ -1,6 +1,6 @@
 import threading
-from typing import List, Dict, Tuple
-from utils import Message, Bytes, Request
+from typing import Dict, Tuple
+from utils import Bytes, Request
 from rsa import RSA
 import socket
 
@@ -27,15 +27,15 @@ class Handler(threading.Thread):
 
   def run(self) -> None:
     while True:
-      message = self.client_socket.recv(4096)
+      message = Bytes.to_str(self.client_socket.recv(4096))
+      print(message)
 
       if message:
-        message = Bytes.to_str(message)
         request = message.split(' ')
         response = ''
 
         if (request[0] == 'set'):
-          self.client_id, self.client_key = Request.parse_set(request[1])
+          self.client_id, self.client_key = Request.parse_set(('').join(request[1:]))
           self.client_keys[self.client_id] = self.client_key
 
           response = self.server_rsa.get_public_key()

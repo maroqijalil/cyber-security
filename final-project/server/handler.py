@@ -14,7 +14,6 @@ class Handler(threading.Thread):
     self.client_names: List[str] = client_names
 
     self.client_name = ''
-    self.greeting = False
 
   def stop(self) -> None:
     self.client_socket.close()
@@ -28,48 +27,32 @@ class Handler(threading.Thread):
 
     for target in self.target_sockets:
       target.sendall(Bytes.from_str(message))
-  
-  def send_message_self(self, message: str):
-    print(self.client_name, message)
-
-    self.client_socket.sendall(Bytes.from_str(message))
 
   def run(self) -> None:
+    message = Message.create('server', 'Whats your name?')
+    self.client_socket.sendall(Bytes.from_str(message))
+
+    reply = Bytes.to_str(self.client_socket.recv(4096))
+    self.client_name = Message.get_content(reply)
+
+    self.client_names.append(self.client_name)
+
+    message = Message.create('server', (',').join(self.client_names))
+    self.send_message(message)
+
+    message = Message.create_greeting(self.client_name)
+    self.send_message(message)
+
     while True:
-      if (self.client_name):
-        message = ''
-        message_self = ''
+      message = ''
+      reply = Bytes.to_str(self.client_socket.recv(4096))
 
-        if (not self.greeting):
-          self.greeting = True
-
-          message = Message.create_greeting(self.client_name)
-
-          message_self = Message.create('server', (',').join(self.client_names))
-          self.send_message(message_self)
-
-        else:
-          reply = self.client_socket.recv(4096)
-
-          if reply:
-            reply = Bytes.to_str(reply)
-            message = Message.create(self.client_name, reply)
-
-          else:
-            self.stop()
-            break
-
-        if (message):
-          self.send_message(message)
-
-        if (message_self):
-          self.send_message_self(message_self)
+      if reply:
+        message = Message.create(self.client_name, reply)
 
       else:
-        message = Message.create('server', 'Whats your name?')
-        self.client_socket.sendall(Bytes.from_str(message))
+        self.stop()
+        break
 
-        reply = Bytes.to_str(self.client_socket.recv(4096))
-        self.client_name = Message.get_content(reply)
-
-        self.client_names.append(self.client_name)
+      if (message):
+        self.send_message(message)

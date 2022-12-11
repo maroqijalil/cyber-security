@@ -30,6 +30,9 @@ try:
     while True:
       print('>> ', end='')
       client.send(input('>> '))
+  
+  else:
+    print('failed to connect')
 
 except KeyboardInterrupt:
   client.stop()
