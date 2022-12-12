@@ -41,3 +41,9 @@ except KeyboardInterrupt:
   print()
 
   sys.exit(0)
+
+except SystemExit:
+  client.stop()
+  print()
+
+  sys.exit(0)

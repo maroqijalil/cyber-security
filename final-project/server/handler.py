@@ -18,7 +18,11 @@ class Handler(threading.Thread):
   def stop(self) -> None:
     self.client_socket.close()
 
-    del self.target_sockets[self.client_name]
+    if self.client_name in self.target_sockets:
+      del self.target_sockets[self.client_name]
+
+    if self.client_name in self.client_names:
+     self.client_names.remove(self.client_name)
 
     message = Message.create_farewell(self.client_name)
     self.send_message(message)

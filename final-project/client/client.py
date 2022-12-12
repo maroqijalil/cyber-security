@@ -7,6 +7,7 @@ from linear_des import LinearDES
 from typing import List, Dict
 from rsa import RSA, RSAClient
 import threading
+import signal, sys
 
 
 class Client(threading.Thread):
@@ -39,8 +40,10 @@ class Client(threading.Thread):
     self.is_initator: bool = False
 
     self.client_des: LinearDES = LinearDES('')
+    self.is_running = True
 
   def stop(self):
+    self.is_running = False
     self.socket.shutdown(socket.SHUT_RDWR)
 
     if (self.thread):
@@ -108,6 +111,19 @@ class Client(threading.Thread):
           self.thread_key = HandlerKey(self.socket_key, self.name, self.client_des, self.client_rsa, self.client_keys, self.auth_key)
           self.thread_key.start()
 
+          def handler(signum, frame):
+            if len(self.client_keys) == 1:
+              sys.exit(0)
+
+            else:
+              print()
+              print('\tyou are the admin, you cannot leave the conversation')
+              print()
+
+              print('>>')
+
+          signal.signal(signal.SIGINT, handler)
+
         return True
 
       else:
@@ -119,14 +135,23 @@ class Client(threading.Thread):
   def handle_exchange(self):
     try:
       for id in self.client_keys:
-        if id != self.name and self.client_keys[id] and not self.client_keys[id].is_paired and id not in self.thread_exchanges:
-          self.client_keys[id].is_initator = self.is_initator
+        if id != self.name and self.client_keys[id]:
+          if not self.client_keys[id].is_paired:
+            if id not in self.thread_exchanges:
+              self.client_keys[id].is_initator = self.is_initator
 
-          client_exchange = HandlerExchange(self.socket, self.name, self.client_rsa, self.client_des, self.client_keys, id, self.is_initator, self.message_exchanges)
-          client_exchange.start()
+              client_exchange = HandlerExchange(self.socket, self.name, self.client_rsa, self.client_des, self.client_keys, id, self.is_initator, self.message_exchanges)
+              client_exchange.start()
 
-          self.thread_exchanges[id] = client_exchange
+              self.thread_exchanges[id] = client_exchange
 
+          else:
+            if id in self.thread_exchanges:
+              del self.thread_exchanges[id]
+
+            if id in self.message_exchanges:
+              del self.message_exchanges[id]
+      
     except Exception:
       pass
 
@@ -137,7 +162,7 @@ class Client(threading.Thread):
       self.socket.send(Bytes.from_str(message))
 
   def run(self):
-    while True:
+    while self.is_running:
       if not self.client_des.key:
         try:
           HandlerKey.update_keys(self.socket_key, self.name, self.client_keys, self.auth_key)

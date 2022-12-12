@@ -40,9 +40,12 @@ class HandlerKey(threading.Thread):
 
         key = Request.validate_from_get(response, request)
 
-        if (key):
+        if key:
           client_keys[id] = RSAClient(client_id, id, key)
 
+        else:
+          del client_keys[id]
+    
   def check_clients(self):
     HandlerKey.update_keys(self.server_key_socket, self.client_id, self.client_keys, self.auth_key)
 

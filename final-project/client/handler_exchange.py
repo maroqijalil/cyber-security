@@ -44,11 +44,6 @@ class HandlerExchange(threading.Thread):
 
   def run(self) -> None:
     try:
-      if sys.platform == "win32":
-        os.system('cls')
-      else:
-        os.system('clear')
-
       target_client = self.client_keys[self.target_id]
       reply = ''
 
