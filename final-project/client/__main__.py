@@ -27,6 +27,8 @@ try:
     os.system('clear')
 
   if client.connect():
+    client.start()
+
     while True:
       client.send()
   

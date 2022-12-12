@@ -20,14 +20,14 @@ class HandlerKey(threading.Thread):
     self.client_key: RSA = client_key
     self.auth_key: str = auth_key
 
-    self.client_keys: Dict[str, RSAClient]  = client_keys 
+    self.client_keys: Dict[str, RSAClient]  = client_keys
 
   def stop(self) -> None:
     self.is_runnning = False
     self.server_key_socket.close()
 
   @staticmethod
-  def update_keys(server_key_socket: socket.socket, client_id, client_keys, auth_key):
+  def update_keys(server_key_socket: socket.socket, client_id, client_keys: Dict[str, RSAClient], auth_key):
     for id in client_keys:
       if id != client_id and not client_keys[id]:
         request = Request.create_get(client_id, id)
@@ -41,7 +41,7 @@ class HandlerKey(threading.Thread):
         key = Request.validate_from_get(response, request)
 
         if (key):
-          client_keys[id] = RSAClient(key)
+          client_keys[id] = RSAClient(client_id, id, key)
 
   def check_clients(self):
     HandlerKey.update_keys(self.server_key_socket, self.client_id, self.client_keys, self.auth_key)

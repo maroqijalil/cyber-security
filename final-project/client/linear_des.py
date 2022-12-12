@@ -274,6 +274,9 @@ class LinearDES:
     self.key = key
     self.keys = Data(key).get_list()
 
+  def init(self):
+    self.keys = Data(self.key).get_list()
+
   def encrypt(self, plain_text):
     result = plain_text
     for key in self.keys:

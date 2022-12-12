@@ -1,14 +1,18 @@
 import socket
 from handler import Handler
 from handler_key import HandlerKey
+from handler_exchange import HandlerExchange
 from utils import Message, Bytes, Request
 from linear_des import LinearDES
 from typing import List, Dict
 from rsa import RSA, RSAClient
+import threading
 
 
-class Client():
+class Client(threading.Thread):
   def __init__(self, host, port, key_host, key_port) -> None:
+    threading.Thread.__init__(self)
+
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.name = ''
 
@@ -22,6 +26,9 @@ class Client():
     self.server_key_port = key_port
     self.thread_key: HandlerKey = None
 
+    self.message_exchanges: Dict[str, List[str]] = {}
+    self.thread_exchanges: Dict[str, HandlerExchange] = {}
+
     # 48 digits
     p = 786287537753406666185810464356342863432256602639
     q = 585724299028731854439673592969136581559573957839
@@ -31,7 +38,7 @@ class Client():
     self.client_keys: Dict[str, RSAClient] = {}
     self.is_initator: bool = False
 
-    self.client_des: LinearDES = None
+    self.client_des: LinearDES = LinearDES('')
 
   def stop(self):
     self.socket.shutdown(socket.SHUT_RDWR)
@@ -45,6 +52,11 @@ class Client():
     if (self.thread_key):
       self.thread_key.stop()
       self.thread_key.join()
+    
+    if len(self.thread_exchanges):
+      for name in self.thread_exchanges:
+        self.thread_exchanges[name].stop()
+        self.thread_exchanges[name].join()
 
   def connect(self) -> bool:
     try:
@@ -86,11 +98,11 @@ class Client():
 
         self.auth_key = responses[0]
         if len(responses) > 1 and self.is_initator:
-          self.client_des = LinearDES(self.client_rsa.decrypt(responses[1]))
+          self.client_des.key = self.client_rsa.decrypt(responses[1])
+          self.client_des.init()
 
-        if self.client_des:
-          self.thread = Handler(self.socket, self.name, self.client_des, self.client_keys)
-          self.thread.start()
+        self.thread = Handler(self.socket, self.name, self.client_des, self.client_keys, self.message_exchanges)
+        self.thread.start()
 
         if self.is_initator:
           self.thread_key = HandlerKey(self.socket_key, self.name, self.client_des, self.client_rsa, self.client_keys, self.auth_key)
@@ -105,23 +117,35 @@ class Client():
       return False
 
   def handle_exchange(self):
-    for id in self.client_keys:
-      if id != self.name and self.client_keys[id] and not self.client_keys[id].is_paired:
-        pass
+    try:
+      for id in self.client_keys:
+        if id != self.name and self.client_keys[id] and not self.client_keys[id].is_paired and id not in self.thread_exchanges:
+          self.client_keys[id].is_initator = self.is_initator
+
+          client_exchange = HandlerExchange(self.socket, self.name, self.client_rsa, self.client_des, self.client_keys, id, self.is_initator, self.message_exchanges)
+          client_exchange.start()
+
+          self.thread_exchanges[id] = client_exchange
+
+    except Exception:
+      pass
 
   def send(self) -> None:
-    if self.client_des:
+    if self.client_des.key:
       print('>> ', end='')
       message = self.client_des.encrypt(input())
       self.socket.send(Bytes.from_str(message))
-    
-    else:
-      HandlerKey.update_keys(self.socket_key, self.name, self.client_keys, self.auth_key)
-      self.handle_exchange()
-    
-    if self.is_initator:
-      try:
+
+  def run(self):
+    while True:
+      if not self.client_des.key:
+        try:
+          HandlerKey.update_keys(self.socket_key, self.name, self.client_keys, self.auth_key)
+        
+        except Exception:
+          pass
+        
         self.handle_exchange()
 
-      except Exception:
-        pass
+      if self.is_initator:
+        self.handle_exchange()

@@ -26,6 +26,10 @@ class Message:
     return f'{user}:left the conversation!'
 
   @staticmethod
+  def create_exchange(user: str, message: str) -> str:
+    return f'exchange:{user};{message}'
+
+  @staticmethod
   def get_sender(message: str) -> str:
     return message.split(':')[0]
 
@@ -36,3 +40,7 @@ class Message:
   @staticmethod
   def is_farewell(message: str) -> bool:
     return 'left the conversation' in message
+
+  @staticmethod
+  def is_exchange(message: str) -> bool:
+    return message.split(':')[0] == 'exchange'

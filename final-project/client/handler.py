@@ -9,7 +9,7 @@ from rsa import RSAClient
 
 
 class Handler(threading.Thread):
-  def __init__(self, server_socket, name, client_des: LinearDES, client_keys) -> None:
+  def __init__(self, server_socket, name, client_des: LinearDES, client_keys, message_exchanges) -> None:
     threading.Thread.__init__(self)
 
     self.server_socket: socket.socket = server_socket
@@ -20,6 +20,8 @@ class Handler(threading.Thread):
 
     self.client_des = client_des
     self.client_keys: Dict[str, RSAClient] = client_keys
+
+    self.message_exchanges: Dict[str, List[str]] = message_exchanges
 
   def stop(self) -> None:
     self.is_runnning = False
@@ -56,7 +58,7 @@ class Handler(threading.Thread):
           if sender in self.client_keys:
             del self.client_keys[sender]
 
-        else:
+        elif self.client_des.key:
           print(f'{self.filter_sender(sender)}:', self.client_des.decrypt(content))
 
     print()
@@ -70,8 +72,19 @@ class Handler(threading.Thread):
         sender = Message.get_sender(reply)
         content = Message.get_content(reply)
 
-        self.messages.append({sender: content})
-        self.print_messages()
+        if Message.is_exchange(reply):
+          contents = content.split(';')
+
+          if len(contents) == 2:
+            if contents[0] in self.message_exchanges:
+              self.message_exchanges[contents[0]].append(contents[1])
+
+            else:
+              self.message_exchanges[contents[0]] = [contents[1]]
+
+        else:
+          self.messages.append({sender: content})
+          self.print_messages()
 
       else:
         self.server_socket.close()

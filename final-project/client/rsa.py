@@ -142,12 +142,55 @@ class RSA:
 
 
 class RSAClient:
-  def __init__(self, public_key: str) -> None:
+  def __init__(self, id, target_id, target_public_key: str) -> None:
     self.is_paired = False
-    self.public_key = public_key
-    self.n, self.e = RSA.from_str(public_key)
+    self.is_initator = False
+    self.id = id
 
-    self.n_verification = random.randint(0, self.n)
+    self.target_id = target_id
+    self.target_public_key = target_public_key
+    self.n, self.e = RSA.from_str(target_public_key)
 
-  def get_pair_request():
-    pass
+    self.n_verification = random.randint(0, 1000)
+
+  def create_request(self, message: str):
+    exp, mod = RSA.split_exp_mod_public(RSA.from_str(self.target_public_key))
+    return RSA.encrypt_from(message, exp, mod)
+
+  def create_key_response(self, message: str, key):
+    messages = message.split(';')
+    return self.create_request(f'{messages[1]};{key}')
+
+  def get_pair_request(self, message: str = ''):
+    if self.is_initator:
+      message = f'{self.id};{self.n_verification}'
+
+    else:
+      messages = message.split(';')
+      message = f'{messages[1]};{self.n_verification}'
+
+    return self.create_request(message)
+  
+  def verify_pair_request(self, message: str):
+    messages = message.split(';')
+
+    if self.is_initator:
+      message = messages[0]
+      return message == f'{self.n_verification}'
+    
+    else:
+      message = messages[0]
+      return message == self.target_id
+  
+  def verify_key_response(self, message: str):
+    messages = message.split(';')
+
+    if len(messages) == 2:
+      message = messages[0]
+      return message == f'{self.n_verification}'
+
+    return False
+
+  @staticmethod
+  def get_session_key(message: str):
+    return message.split(';')[1]

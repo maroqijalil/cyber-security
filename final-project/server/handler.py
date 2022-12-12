@@ -1,6 +1,6 @@
 import threading
 import socket
-from typing import List
+from typing import List, Dict
 from utils import Message, Bytes
 
 
@@ -10,7 +10,7 @@ class Handler(threading.Thread):
 
     self.client_socket: socket.socket = client_socket
 
-    self.target_sockets: List[socket.socket] = target_sockets
+    self.target_sockets: Dict[str, socket.socket] = target_sockets
     self.client_names: List[str] = client_names
 
     self.client_name = ''
@@ -18,9 +18,7 @@ class Handler(threading.Thread):
   def stop(self) -> None:
     self.client_socket.close()
 
-    for index, target in enumerate(self.target_sockets):
-      if target == self.client_socket:
-        del self.target_sockets[index]
+    del self.target_sockets[self.client_name]
 
     message = Message.create_farewell(self.client_name)
     self.send_message(message)
@@ -29,7 +27,7 @@ class Handler(threading.Thread):
     print(self.client_name, Message.get_content(message))
 
     for target in self.target_sockets:
-      target.sendall(Bytes.from_str(message))
+      self.target_sockets[target].sendall(Bytes.from_str(message))
 
   def run(self) -> None:
     message = Message.create('server', 'Whats your name?')
@@ -37,6 +35,8 @@ class Handler(threading.Thread):
 
     reply = Bytes.to_str(self.client_socket.recv(4096))
     self.client_name = Message.get_content(reply)
+
+    self.target_sockets[self.client_name] = self.client_socket
 
     self.client_names.append(self.client_name)
 
@@ -51,15 +51,25 @@ class Handler(threading.Thread):
     self.send_message(message)
 
     while True:
-      message = ''
       reply = Bytes.to_str(self.client_socket.recv(4096))
 
-      if reply:
-        message = Message.create(self.client_name, reply)
+      if Message.is_exchange(reply):
+        content = Message.get_content(reply)
+        contents = content.split(';')
+
+        if len(contents) == 2:
+          reply = Message.create_exchange(self.client_name, contents[1])
+          self.target_sockets[contents[0]].sendall(Bytes.from_str(reply))
 
       else:
-        self.stop()
-        break
+        message = ''
 
-      if (message):
-        self.send_message(message)
+        if reply:
+          message = Message.create(self.client_name, reply)
+
+        else:
+          self.stop()
+          break
+
+        if (message):
+          self.send_message(message)

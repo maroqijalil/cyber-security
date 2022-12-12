@@ -1,6 +1,6 @@
 import socket
 import select
-from typing import List
+from typing import List, Dict
 from handler import Handler
 
 
@@ -11,7 +11,7 @@ class Server():
     self.host = host
     self.port = port
 
-    self.target_sockets: List[socket.socket] = []
+    self.target_sockets: Dict[str, socket.socket] = {}
     self.client_threads: List[Handler] = []
     self.client_names: List[str] = []
 
@@ -48,8 +48,6 @@ class Server():
             client = Handler(client_socket, self.target_sockets, self.client_names)
             client.start()
             self.client_threads.append(client)
-
-            self.target_sockets.append(client_socket)
 
       except:
         is_running = False
