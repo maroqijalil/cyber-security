@@ -58,6 +58,8 @@ class Handler(threading.Thread):
       reply = Bytes.to_str(self.client_socket.recv(4096))
 
       if Message.is_exchange(reply):
+        print(self.client_name, reply)
+
         content = Message.get_content(reply)
         contents = content.split(';')
 
